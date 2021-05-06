@@ -1,0 +1,156 @@
+---
+title: "21st Century World Hunger Issues - Informational Report"
+author: "Luis Treviño"
+date: "May 7, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+packs <- c("googleVis", "tidyr", "gridExtra", "dplyr", "plyr", "stringr", "data.table", "ggplot2", "scales", "plotly", "gganimate")
+for ( p in packs) library(p, character.only = T)
+rm(packs, p)
+```
+
+# Measuring Hunger
+
+According to the [Food and Agriculture Organization of the United Nations (FAO)](http://www.fao.org/about/en/), global food production has increased at a much faster rate than global population growth since at least the early 1990's. In 2009 it became formally known that the world was already producing enough food to adequately feed 10 billion people, which was at that time and still is the projected global population for the year 2050.^[FAO, (2009a, 2009b); http://www.fao.org/3/i0680e/i0680e00.htm] This means that the world is currently producing enough food to feed the entire global population plus an extra one-third, even by conservative estimates. Despite these facts "hunger" continues to significantly affect at least 690 million people (or 8.9% of the global population) around the world.^[https://www.worldvision.org/hunger-news-stories/world-hunger-facts]
+
+**Hunger** is defined as the suffering or distress associated with not having a sufficient level of food intake. When we discuss the concept of "global hunger", however, the problem that hunger poses to the world proves to be multidimensional. Concepts such as [**undernourishment**](https://www.merriam-webster.com/dictionary/undernourishment) and [**malnutrution**](https://www.merriam-webster.com/dictionary/malnutritions) are often necessary to fully describe the threats surrounding global hunger. Moreover, simply measuring hunger and its impacts on any particular region around the world often proves to be a complicated endeavor. 
+
+Sophisticated tools such as the [**Global Hunger Index (GHI)**](https://www.globalhungerindex.org/about.html) have been developed in the attempt to measure the impact, extent, and implications of hunger throughout the majority of regions around the world. The GHI is used by the most influential organizations around the world with the primary goal of solving the crisis of global hunger as soon as humanly possible. The GHI provides a summarized score for each region in the world facing hunger issues by measuring its multiple dimensions including; inadequate food supply, child mortality, and child undernutrition.
+
+Below you can see an illustration of the GHI composition and the dimensions it measures.
+
+![GHI Composition](/Users/Sudo/Desktop/R Final Project/Images/fig1.png)
+
+The origins of the GHI can be found here: <https://ageconsearch.umn.edu/record/55891/?ln=en>.
+
+# Looking at the Data
+```{r data_clean, echo=FALSE, include=FALSE}
+
+#Bring in GHI Calculations Dataset
+ghi <- read.csv("https://raw.githubusercontent.com/CoderLou/Global-Hunger-Index---Project/main/Datasets/002_AppendixC_GHIscores.csv")
+
+#Drop Columns with no information
+ghi<- ghi[-c(7:15)]
+
+#Drop Rows with no information
+ghi <- ghi[-c(1:3,11,15,22,30:31,42, 71, 96,100,109,111,113,116),]
+
+#Rename Columns
+ghi<- ghi %>%
+  rename(
+    "Country" = "X2015.Global.Hunger.Index.Scores",
+    "1990" = "X",
+    "1995" = "X.1",
+    "2000" = "X.2",
+    "2005" = "X.3",
+    "2015" = "X.4"
+  )
+
+#Re-coding Missing Values to Zero
+ghi[ghi == "?"] <- 0
+#Re-coding character value to mean numeric
+## NOTE: This is common practice when working with these kinds of datasets in order to be able to work with all numeric data. With the GHI specifically, "<5" is often transformed to 2.5 and "<2.5" would be transformed to 1.7.
+ghi[ghi == "<5"] <- (0+5)/2
+
+#Column Conversion to Numeric
+ghi[, c(2:6)] <- sapply(ghi[, c(2:6)], as.numeric)
+
+
+```
+Each year the [International Food Policy Research Institute (IFPRI)](https://www.ifpri.org/about) investigates the various indicators related to hunger and average their combined scores to come up with their GHI. Scores end up being assigned to regions (countries) all over the world on a scale of 0 to 100, with 0 (no hunger issues) being the best possible score and 100 (severe hunger issues) being the worst. Any score over 50 is already considered to be extremely alarming and damaging to a population. 
+
+Here we will be looking at 4-6 year averages of the GHI ranging from 1988-2016 which are represented by five categorical years; 1990, 1995, 2000, 2005, and 2015. 
+
+Below you can see the summary statistics of this data according to each year:
+
+``` {r visuals_0, echo=FALSE, include=TRUE, warning=FALSE}
+
+summary(ghi[-1])
+
+```
+
+
+Here are the same summary statistics illustrated so a clearer comparison between different years can be made: 
+
+``` {r visuals_1, echo=FALSE, include=TRUE, warning=FALSE}
+
+box <- plot_ly(ghi, y = ~`1990`, type = "box", name = "1990", mode = "markers", height=630, width=880)
+box <- box %>% add_trace(y = ~`1995`, type = "box", name = "1995")
+box <- box %>% add_trace(y = ~`2000`, type = "box", name = "2000")
+box <- box %>% add_trace(y = ~`2005`, type = "box", name = "2005")
+box <- box %>% add_trace(y = ~`2015`, type = "box", name = "2015")
+box <- box %>% layout(title = "Summary Statistics of GHI Scores by Year")
+
+box
+
+```
+
+We can clearly observe that in general the GHI scores are decreasing as time moves forward. This is a positive indicator but, indeed, we must be very careful in assigning to much weight to this comparison due to this note of caution: "GHI scores are...continually being revised and improved by the United Nations agencies that compile them...Comparing scores between reports may create the impression that hunger has changed positively or negatively in a specific country from year to year, whereas in some cases the change may be partly or fully a reflection of a data revision."^[FAO, (2009a, 2009b)] Due to this caution, this report does not specifically compare GHI scores in one country or region over time and instead aims at providing a general picture of how trends have changed and how much progress has been made. 
+
+
+# Progress towards "Zero Hunger" 
+
+Obviously world hunger is a part of the current human condition which we all wish did not exist. Now more than ever in the 21st century, we actually have a viable plan of action being implemented to both address and completely solve this crisis. The United Nations currently has a set of [Sustainable Development Goals](https://www.un.org/sustainabledevelopment/sustainable-development-goals/) which were created for the purpose of moving humanity, including those yet to be born, towards a better future. Among these a main one is to achieve "zero hunger" by 2030. [**Zero hunger**](https://www.un.org/sustainabledevelopment/hunger/) essentially implies that hunger would be completely abolished throughout the whole world. This is hypothetically possible to do through practical means, but recent complications caused by the [COVID-19](https://www.who.int/health-topics/coronavirus#tab=tab_1) pandemic have made this even more of a difficult task than before. Data about the extent to which COVID-19 has affected the progress of "zero hunger" is still very limited. Instead, here we will continue on to data concerning the other two significant obstacles to overcome--food insecurity and undernourishment-- in order to achieve zero hunger by 2030. 
+
+
+``` {r data_clean_2, echo=FALSE, include=FALSE}
+
+#Bring in Data about progress on world hunger solutions
+#Food Insecurity Data
+sec <- read.csv("https://raw.githubusercontent.com/CoderLou/Global-Hunger-Index---Project/main/Datasets/share-of-population-with-moderate-or-severe-food-insecurity.csv")
+
+#Rename Column 
+sec <- sec %>% 
+  rename("Percent" = "Suite.of.Food.Security.Indicators...Prevalence.of.moderate.or.severe.food.insecurity.in.the.total.population..percent...3.year.average....210091...Value...6121...."
+         )
+
+#Undernourishment Data
+und <- read.csv("https://raw.githubusercontent.com/CoderLou/Global-Hunger-Index---Project/main/Datasets/prevalence-of-undernourishment.csv")
+
+#Rename Column
+und <- und %>%
+  rename("Percent" = "Suite.of.Food.Security.Indicators...Prevalence.of.undernourishment..percent...3.year.average....210041...Value...6121...."
+         )
+
+```
+
+##  Food Insecurity
+Achieving food security is vital to ending hunger for many regions around the world. The data used here focuses on a 3-year average of the prevalence of moderate to severe food insecurity in the total population by country or region. Again, the data is grouped for the purposes of avoiding comparing specific scores within a country and we can see general global trends instead.
+
+``` {r visuals_2, echo=FALSE, include=TRUE, warning=FALSE}
+
+#### Scatter Plot - Food Insecurity ####
+
+scat1 <- plot_ly(data = sec, x = ~Year, y = ~Percent, color = ~Year, size = ~Percent, type = "scatter", mode = "markers")
+scat1 <- scat1 %>% layout(title = "Percentages of Food Insecurity by Year (2015-2017)")
+
+scat1
+
+
+```
+
+Looking at this simple graph we actually observe the opposite of would be expected: food insecurity as a whole actually seems to be increasing in regions measured around the world. Indeed, this is something that has caused some alarm to the United Nations recently especially since we were used to a steady decline for decades for this indicator until about 2015.^[https://www.un.org/sustainabledevelopment/hunger/] 
+
+## Undernourishment
+
+Looking now at the data related to the proportion of undernourished populations, we regrettably see a similar but more detailed trend. The data used here looks at the prevalence of undernourishment ranging from 2000-2017 from nearly 3000 observations from around the world. 
+
+``` {r visuals_3, echo=FALSE, include=TRUE, warning=FALSE} 
+#### Scatter Plot - Undernourishment ####
+
+scat2 <- plot_ly(data = und, x = ~Year, y = ~Percent, color = ~Year, size = ~Percent, type = "scatter", mode = "markers", width = 1000)
+scat2 <- scat2 %>% layout(title = "Percentages of Undernourished Populations by Year (2000-2017)")
+
+scat2
+
+```
+
+Interestingly, we see a kind of "U" (or concave) trend in our data where the maximum percentage starts in 2000, decreases steadily until about 2011-2013, and then steadily increases again from 2014-2017. This agrees strongly with our data on food insecurity since those years specifically are both signaling a reversal on the progress towards zero hunger by 2030.
+
+# Conclusion
+This report should serve as a brief summary of some of the most recent data concerning the crisis of world hunger. The United Nations warns that if trends like the ones we saw above do not change then we will definitely not be on track to abolish world hunger by the year 2030. Issues such as man-made conflicts (wars), climate change, and economic downturns were already the main threats to the achievement of zero hunger, but now with the arrival of the COVID-19 pandemic, things have arguably gotten at least twice as bad. COVID-19 is predicted to have increased the number of people around the world suffering from acute hunger issues from 135 million to 265 million in 2020, while 250 million people are estimated to currently be "at the brink of starvation."^[https://www.wfp.org/stories/risk-hunger-pandemic-coronavirus-set-almost-double-acute-hunger-end-2020].
+
+Besides all this, world population is continually increasing and 10 billion people are expected to inhabit the planet by 2050. Dramatic changes must be implemented by countries throughout the world that are able to help with food and agriculture systems in developing and impoverished countries if we hope to ever completely abolish the crisis of world hunger from the present human experience for our sake today and for the generations to come.
